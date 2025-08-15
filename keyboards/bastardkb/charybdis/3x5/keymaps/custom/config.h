@@ -34,3 +34,12 @@
 // - `CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_THRESHOLD`
 // #define CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
 #endif // POINTING_DEVICE_ENABLE
+
+/* Cirque 40 mm via I2C (default address 0x2A) */
+#define CIRQUE_PINNACLE_ADDR 0x2A
+/* Use relative mode so Cirque reports deltas (mouse-style) */
+#define CIRQUE_PINNACLE_POSITION_MODE 0 /* 0=relative, 1=absolute on some trees */
+#define CIRQUE_PINNACLE_TAP_ENABLE              // tap = BTN1
+#define CIRQUE_PINNACLE_SECONDARY_TAP_ENABLE    // upper-right corner = BTN2
+/* Optional: enable simple side/circular scroll gestures */
+#define POINTING_DEVICE_GESTURES_SCROLL_ENABLE

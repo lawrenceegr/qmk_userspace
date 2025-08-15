@@ -15,10 +15,54 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
+#include "drivers/sensors/cirque_pinnacle.h"
 
 #ifdef CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
 #    include "timer.h"
 #endif // CHARYBDIS_AUTO_POINTER_LAYER_TRIGGER_ENABLE
+
+// Tunables for mixing
+static int8_t cirque_gain = 1;       // "fine" multiplier for Cirque
+static int8_t pmw_gain    = 1;       // keep at 1 (you can add a sniping modifier on your pointer layer)
+
+// Basic Cirque init (I2C, relative mode, gestures)
+void keyboard_post_init_user(void) {
+    // Cirque driver has its own init; relative mode + gestures use the config.h defines
+    cirque_pinnacle_init();          // provided by the driver (I2C variant compiled above)
+    // If your QMK tree needs explicit mode calls, you can do them here, e.g.:
+    // cirque_pinnacle_set_relative_mode(true);
+    // cirque_pinnacle_enable_tap(true);
+}
+
+// Called every scan after the active driver (PMW3360) filled the report.
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    // 1) Read Cirque state (relative deltas + buttons/scroll).
+    //    The cirque driver exposes helpers; exact names vary slightly across trees.
+    //    Typical pattern: fetch dx/dy and button/scroll bits.
+    int16_t dx = 0, dy = 0;
+    bool    b1 = false, b2 = false;
+    int8_t  h = 0, v = 0; // horizontal/vertical scroll from gestures if enabled
+
+    if (cirque_pinnacle_read_relative(&dx, &dy, &h, &v, &b1, &b2)) {
+        // 2) Scale and SUM with PMW3360 deltas.
+        mouse_report.x += (int16_t)(cirque_gain * dx);
+        mouse_report.y += (int16_t)(cirque_gain * dy);
+
+        // 3) Merge buttons & scroll coming from Cirque taps/gestures.
+        if (b1) mouse_report.buttons |= MOUSE_BTN1;
+        if (b2) mouse_report.buttons |= MOUSE_BTN2;
+        mouse_report.h += h;
+        mouse_report.v += v;
+    }
+
+    // Optional: “sniping” on your pointer layer reduces overall gain
+    if (layer_state_is(LAYER_POINTER)) {
+        mouse_report.x /= 2;
+        mouse_report.y /= 2;
+    }
+
+    return mouse_report;
+}
 
 enum charybdis_keymap_layers {
     LAYER_BASE = 0,

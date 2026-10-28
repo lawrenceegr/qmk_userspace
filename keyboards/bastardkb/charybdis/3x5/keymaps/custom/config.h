@@ -14,6 +14,13 @@
 #define POINTING_DEVICE_COMBINED
 
 // Cirque Pinnacle trackpad settings
+// The Cirque is read by the keymap, not as POINTING_DEVICE_DRIVER, so QMK
+// doesn't set its I2C address or bus. 0x2A is the Pinnacle default.
+#define CIRQUE_PINNACLE_ADDR 0x2A
+// I2C1 on GP2 (SDA) / GP3 (SCL): change to the pins the trackpad is wired to.
+#define I2C_DRIVER I2CD1
+#define I2C1_SDA_PIN GP2
+#define I2C1_SCL_PIN GP3
 #define CIRQUE_PINNACLE_DIAMETER_MM 40
 #define CIRQUE_PINNACLE_TAP_ENABLE
 #define CIRQUE_PINNACLE_SECONDARY_TAP_ENABLE
